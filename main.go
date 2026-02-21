@@ -1,11 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
-	"github.com/debobrad579/repertoire-go/handlers"
-	"github.com/debobrad579/repertoire-go/utils"
+	"github.com/debobrad579/go-mate/handlers"
+	"github.com/debobrad579/go-mate/utils"
 )
+
+const port = ":3000"
 
 func main() {
 	mux := http.NewServeMux()
@@ -18,12 +21,13 @@ func main() {
 		}
 	})
 
-	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	mux.HandleFunc("/app/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "app/index.html") })
 	mux.HandleFunc("/login", utils.TemplateRenderer("login.html", nil))
 	mux.HandleFunc("POST /login", handlers.LoginPostHandler)
 	mux.HandleFunc("/register", utils.TemplateRenderer("register.html", nil))
 	mux.HandleFunc("POST /register", handlers.RegisterPostHandler)
 
-	http.ListenAndServe(":3000", mux)
+	log.Printf("Starting server at port %s\n", port)
+	http.ListenAndServe(port, mux)
 }

@@ -1,20 +1,18 @@
 {{ define "layout" }}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ block "title" . }}GoMate{{ end }}</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+    <link rel="stylesheet" href="/static/style.css" />
+    {{ block "head" . }}{{ end }}
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ block "title" . }}Repertoire Go{{ end }}</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="stylesheet" href="/static/style.css">
-  {{ block "head" . }}{{ end }}
-</head>
-
-<body class="bg-background text-foreground">
-  {{ block "body" . }}{{ end }}
-  <script src="/static/themes.js"></script>
-</body>
-
+  <body class="bg-background text-foreground">
+    {{ block "body" . }}{{ end }}
+    <script src="/static/themes.js"></script>
+  </body>
 </html>
 {{ end }}

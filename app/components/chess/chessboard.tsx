@@ -48,12 +48,12 @@ export function Chessboard({
 
   function addHighlightedSquare(i: number) {
     const highlightedIndices = highlightedSquares.map(
-      (highlightedSquare) => highlightedSquare.index
+      (highlightedSquare) => highlightedSquare.index,
     )
 
     if (highlightedIndices.includes(i)) {
       return setHighlightedSquares((prevHighlightedSquares) =>
-        prevHighlightedSquares.toSpliced(highlightedIndices.indexOf(i), 1)
+        prevHighlightedSquares.toSpliced(highlightedIndices.indexOf(i), 1),
       )
     }
 
@@ -67,13 +67,13 @@ export function Chessboard({
     if (startArrowIndex == null) return
 
     const arrowKeys = arrows.map(
-      (arrow) => `${arrow.startIndex}${arrow.endIndex}`
+      (arrow) => `${arrow.startIndex}${arrow.endIndex}`,
     )
     const arrowKey = `${startArrowIndex}${i}`
 
     if (arrowKeys.includes(arrowKey)) {
       return setArrows((prevArrows) =>
-        prevArrows.toSpliced(arrowKeys.indexOf(arrowKey), 1)
+        prevArrows.toSpliced(arrowKeys.indexOf(arrowKey), 1),
       )
     }
 
@@ -124,7 +124,11 @@ export function Chessboard({
     const row = Math.floor(y / squareWidth)
     const targetIndex = row * 8 + col
 
-    if (targetIndex >= 0 && targetIndex < 64 && targetIndex !== dragStartSquare) {
+    if (
+      targetIndex >= 0 &&
+      targetIndex < 64 &&
+      targetIndex !== dragStartSquare
+    ) {
       onMove?.(intToSquare(dragStartSquare), intToSquare(targetIndex))
     }
 
@@ -153,12 +157,12 @@ export function Chessboard({
       className="aspect-square grid grid-cols-8 grid-rows-8 relative"
       onClick={() => {
         setArrows((prevArrows) =>
-          prevArrows.filter((arrow) => arrow.fen !== fen)
+          prevArrows.filter((arrow) => arrow.fen !== fen),
         )
         setHighlightedSquares((prevHighlightedSquares) =>
           prevHighlightedSquares.filter(
-            (highlightedSquare) => highlightedSquare.fen !== fen
-          )
+            (highlightedSquare) => highlightedSquare.fen !== fen,
+          ),
         )
       }}
     >
