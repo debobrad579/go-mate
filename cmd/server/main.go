@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
-	"github.com/debobrad579/chessgo/internal/auth"
 	"github.com/debobrad579/chessgo/internal/database"
 	"github.com/debobrad579/chessgo/internal/handlers"
 )
@@ -50,22 +48,9 @@ func main() {
 	mux.HandleFunc("/register", handlers.TemplateRenderer("register.html", nil))
 	mux.HandleFunc("POST /register", cfg.RegisterPostHandler)
 
-	mux.HandleFunc("/api/me", func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("jwt")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		userID, err := auth.ValidateJWT(cookie.Value, cfg.TokenSecret)
-		user, err := cfg.DB.GetUser(r.Context(), userID)
-		if err != nil {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
-		}
+	mux.HandleFunc("/api/me", cfg.ApiMeHandler)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(user)
-	})
+	mux.HandleFunc("/ws", handlers.WebsocketsHandler)
 
 	log.Printf("Starting server at port %s\n", port)
 	http.ListenAndServe(port, mux)

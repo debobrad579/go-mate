@@ -25,8 +25,10 @@ import { Clock } from "./clock"
 
 export function ChessGame({
   gameData: { white, black, moves, result, thinkTime },
+  onMove,
 }: {
   gameData: Game
+  onMove?: (from: string, to: string) => void
 }) {
   const [game, setGame] = useState(new Chess())
   const [undoCount, setUndoCount] = useState(0)
@@ -178,6 +180,7 @@ export function ChessGame({
                   : undefined
               }
               check={game.in_check() ? game.turn() : undefined}
+              onMove={onMove}
             />
             <Clock
               className="bg-gray-200 text-black"

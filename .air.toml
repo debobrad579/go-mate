@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   cmd = "sqlc generate && go build -o ./tmp/main ./cmd/server"
-  bin = "./tmp/main"
+  entrypoint = "./tmp/main"
   exclude_dir = ["tmp", "node_modules", "app", "internal/database"]
 
 [log]
