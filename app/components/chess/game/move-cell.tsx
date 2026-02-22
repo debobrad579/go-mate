@@ -18,7 +18,7 @@ export function MoveCell({
   children,
 }: {
   active: boolean
-  scrollAreaRef: RefObject<HTMLDivElement>
+  scrollAreaRef: RefObject<HTMLDivElement | null>
   undoCount: number
   onClick?: MouseEventHandler<HTMLElement>
   isTableCell?: boolean

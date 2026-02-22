@@ -1,5 +1,17 @@
 import { cn } from "@/lib/utils"
 
+type SquareProps = {
+  index: number
+  piece: string | null
+  isHighlighted: boolean
+  isYellow: boolean
+  check: boolean
+  squareWidth: number
+  onRightClick: () => void
+  onRightRelease: () => void
+  onDragStart?: (e: React.MouseEvent) => void
+}
+
 export function Square({
   index,
   piece,
@@ -10,17 +22,7 @@ export function Square({
   onRightClick,
   onRightRelease,
   onDragStart,
-}: {
-  index: number
-  piece: string | null
-  isHighlighted: boolean
-  isYellow: boolean
-  check: boolean
-  squareWidth: number
-  onRightClick: () => void
-  onRightRelease: () => void
-  onDragStart?: (e: React.MouseEvent) => void
-}) {
+}: SquareProps) {
   const isLight = (Math.floor(index / 8) + (index % 8)) % 2 === 0
   const rank = 8 - Math.floor(index / 8)
   const file = String.fromCharCode(97 + (index % 8))
@@ -45,7 +47,7 @@ export function Square({
       className={cn(
         "w-full aspect-square relative leading-none",
         check &&
-        "bg-[radial-gradient(ellipse_at_center,_rgb(255,0,0)_0%,_rgb(231,0,0)_25%,_rgba(169,0,0,0)_89%,_rgba(158,0,0,0)_100%)]",
+          "bg-[radial-gradient(ellipse_at_center,_rgb(255,0,0)_0%,_rgb(231,0,0)_25%,_rgba(169,0,0,0)_89%,_rgba(158,0,0,0)_100%)]",
         isLight
           ? isHighlighted
             ? "bg-[#ee7965] text-[#e46956]"
@@ -56,7 +58,7 @@ export function Square({
             ? "bg-[#e46956] text-[#ee7965]"
             : isYellow
               ? "bg-[#dcc35a] text-[#f6eb81]"
-              : "bg-[#ba8765] text-[hsl(36,64%,82%)]"
+              : "bg-[#ba8765] text-[hsl(36,64%,82%)]",
       )}
     >
       {file === "a" && (

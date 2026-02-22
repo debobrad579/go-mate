@@ -1,10 +1,9 @@
-export function Arrow({
-  squareWidth,
-  arrow,
-}: {
+type ArrowProps = {
   squareWidth: number
   arrow: { startIndex: number; endIndex: number }
-}) {
+}
+
+export function Arrow({ squareWidth, arrow }: ArrowProps) {
   function indexToCoords(index: number) {
     const x = (index % 8) * squareWidth + squareWidth / 2
     const y = Math.floor(index / 8) * squareWidth + squareWidth / 2
