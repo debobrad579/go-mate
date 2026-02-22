@@ -3,11 +3,12 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/debobrad579/chessgo/internal/auth"
 	"github.com/debobrad579/chessgo/internal/database"
 	"github.com/lib/pq"
 )
 
-type RegisterData struct {
+type registerData struct {
 	Fields struct {
 		Name            string
 		Email           string
@@ -20,6 +21,7 @@ type RegisterData struct {
 		Password        string
 		ConfirmPassword string
 	}
+	AuthError string
 }
 
 func (cfg *Config) RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +35,7 @@ func (cfg *Config) RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm-password")
 
-	var data RegisterData
+	var data registerData
 	data.Fields.Name = name
 	data.Fields.Email = email
 	data.Fields.Password = password
@@ -67,7 +69,13 @@ func (cfg *Config) RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{Email: email, Name: name})
+	hashedPassword, err := auth.HashPassword(password)
+	if err != nil {
+		registerError(w, data, http.StatusInternalServerError, "Failed to hash password")
+		return
+	}
+
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{Email: email, Name: name, HashedPassword: hashedPassword})
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" {
@@ -78,11 +86,20 @@ func (cfg *Config) RegisterPostHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		w.WriteHeader(http.StatusInternalServerError)
-		data.Errors.Email = "Internal server error"
-		RenderTemplate(w, "register.html", data)
+		registerError(w, data, http.StatusInternalServerError, "Failed to create user")
+		return
+	}
+
+	if err := cfg.login(w, r, user.ID); err != nil {
+		registerError(w, data, http.StatusInternalServerError, "Failed to log in")
 		return
 	}
 
 	http.Redirect(w, r, "/app", http.StatusSeeOther)
+}
+
+func registerError(w http.ResponseWriter, data registerData, code int, message string) {
+	data.AuthError = message
+	w.WriteHeader(code)
+	RenderTemplate(w, "register.html", loginData{AuthError: message})
 }

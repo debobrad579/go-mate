@@ -1,5 +1,3 @@
-"use client"
-
 import { useEventListener } from "@/hooks/useEventListener"
 import { useEffect, useRef, useState } from "react"
 import { Arrow } from "./arrow"

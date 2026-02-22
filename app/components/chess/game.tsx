@@ -20,7 +20,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { MoveCell } from "./move-cell"
 import { Chessboard } from "./chessboard"
-import { Game } from "@/types/chess"
+import type { Game } from "@/types/chess"
 import { Clock } from "./clock"
 
 export function ChessGame({

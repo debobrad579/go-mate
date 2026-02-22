@@ -1,5 +1,6 @@
 import { ChessGame } from "@/components/chess/game"
-import { Game } from "@/types/chess"
+import type { Game } from "@/types/chess"
+import { useUser } from "@/user-context"
 
 export const sampleGame: Game = {
   moves: ["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6", "Qxf7#"],
@@ -27,9 +28,12 @@ export const sampleGame: Game = {
 }
 
 export function PlayPage() {
+  const { user } = useUser()
+
   return (
     <div className="h-screen w-screen flex items-center justify-center overflow-hidden">
       <div className="aspect-square w-[min(100vw,100vh)] p-4">
+        {user != null && <h1>{user.Name}</h1>}
         <ChessGame gameData={sampleGame} />
       </div>
     </div>

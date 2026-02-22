@@ -62,6 +62,7 @@
                 <p id="password-error" class="text-sm text-destructive">
                   {{ .Errors.Password }}
                 </p>
+                <p class="text-sm text-destructive">{{ .AuthError }}</p>
               </div>
               <div class="flex flex-col gap-4">
                 <button
@@ -69,12 +70,6 @@
                   class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 w-full bg-primary text-primary-foreground hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   Login
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 w-full border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  Login with Google
                 </button>
                 <p class="text-sm text-muted-foreground text-center">
                   Don't have an account?

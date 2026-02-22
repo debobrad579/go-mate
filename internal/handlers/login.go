@@ -1,8 +1,13 @@
 package handlers
 
-import "net/http"
+import (
+	"database/sql"
+	"net/http"
 
-type LoginData struct {
+	"github.com/debobrad579/chessgo/internal/auth"
+)
+
+type loginData struct {
 	Fields struct {
 		Email    string
 		Password string
@@ -11,6 +16,7 @@ type LoginData struct {
 		Email    string
 		Password string
 	}
+	AuthError string
 }
 
 func (cfg *Config) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +28,7 @@ func (cfg *Config) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	var data LoginData
+	var data loginData
 	data.Fields.Email = email
 	data.Fields.Password = password
 
@@ -39,7 +45,41 @@ func (cfg *Config) LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	if data.Errors.Email != "" || data.Errors.Password != "" {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		RenderTemplate(w, "login.html", data)
-	} else {
-		http.Redirect(w, r, "/app", http.StatusSeeOther)
+		return
 	}
+
+	user, err := cfg.DB.GetUserByEmail(r.Context(), data.Fields.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			loginError(w, data, http.StatusUnauthorized, "Email or password is incorrect")
+			return
+		}
+		loginError(w, data, http.StatusInternalServerError, "Failed to get user")
+		return
+	}
+
+	ok, err := auth.CheckPasswordHash(data.Fields.Password, user.HashedPassword)
+
+	if err != nil {
+		loginError(w, data, http.StatusInternalServerError, "Failed to verify password")
+		return
+	}
+
+	if !ok {
+		loginError(w, data, http.StatusUnauthorized, "Email or password is incorrect")
+		return
+	}
+
+	if err := cfg.login(w, r, user.ID); err != nil {
+		loginError(w, data, http.StatusInternalServerError, "Failed to log in")
+		return
+	}
+
+	http.Redirect(w, r, "/app", http.StatusSeeOther)
+}
+
+func loginError(w http.ResponseWriter, data loginData, code int, message string) {
+	data.AuthError = message
+	w.WriteHeader(code)
+	RenderTemplate(w, "login.html", data)
 }
