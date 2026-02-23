@@ -6,29 +6,10 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/RchrdHndrcks/gochess/chess"
 	"github.com/gorilla/websocket"
+
+	"github.com/debobrad579/chessgo/internal/chess"
 )
-
-type Game struct {
-	Moves     []Move `json:"moves"`
-	Result    string `json:"result"`
-	White     Player `json:"white"`
-	Black     Player `json:"black"`
-	ThinkTime int    `json:"think_time,omitempty"`
-}
-
-type Player struct {
-	Name string `json:"name"`
-	Elo  string `json:"elo"`
-}
-
-type Move struct {
-	From      string `json:"from"`
-	To        string `json:"to"`
-	Timestamp int    `json:"timestamp"`
-	Promotion string `json:"promotion,omitempty"`
-}
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -37,25 +18,20 @@ var upgrader = websocket.Upgrader{
 }
 
 var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Game, 256)
+var broadcast = make(chan *chess.Game, 256)
 
 var (
-	mu        sync.Mutex
-	chessGame *chess.Chess
-	game      Game
+	mu   sync.Mutex
+	game *chess.Game
 )
 
 func init() {
-	var err error
-	chessGame, err = chess.New()
-	if err != nil {
-		panic(err)
-	}
-	game = Game{
-		Moves:  []Move{},
+	game = &chess.Game{
+		State:  chess.NewGameState(),
+		Moves:  []chess.Move{},
 		Result: "*",
-		White:  Player{Name: "Brady DeBoer", Elo: "1733"},
-		Black:  Player{Name: "Lee Hendon", Elo: "1735"},
+		White:  chess.Player{Name: "Brady DeBoer", Elo: 1733},
+		Black:  chess.Player{Name: "Lee Hendon", Elo: 1735},
 	}
 }
 
@@ -85,25 +61,35 @@ func WebsocketsHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("Error reading message:", err)
+			sendData(conn, game)
 			break
 		}
 
-		var move Move
+		var move chess.Move
 		if err = json.Unmarshal(message, &move); err != nil {
-			fmt.Println("Error parsing json:", err)
+			sendData(conn, game)
 			break
 		}
 
-		if err = chessGame.MakeMove(move.From + move.To); err != nil {
-			fmt.Println("Illegal move:", move.From+move.To)
-			break
+		if !game.IsMoveValid(move) {
+			fmt.Println("Invalid move:", move)
+			sendData(conn, game)
+			continue
 		}
 
-		game.Moves = append(game.Moves, move)
+		game.Move(move)
 
 		broadcast <- game
 	}
+}
+
+func sendData(conn *websocket.Conn, game *chess.Game) error {
+	data, err := json.Marshal(game)
+	if err != nil {
+		return err
+	}
+
+	return conn.WriteMessage(websocket.TextMessage, data)
 }
 
 func HandleBroadcasts() {
@@ -112,14 +98,12 @@ func HandleBroadcasts() {
 
 		data, err := json.Marshal(game)
 		if err != nil {
-			fmt.Println("Error encoding json:", err)
 			continue
 		}
 
 		for conn := range clients {
 			err := conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
-				fmt.Println("Error writing to client:", err)
 				conn.Close()
 				delete(clients, conn)
 			}
