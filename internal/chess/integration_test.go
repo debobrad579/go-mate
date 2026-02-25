@@ -27,9 +27,11 @@ func Test4KnightsEnglish(t *testing.T) {
 	}
 
 	for _, m := range moves {
-		assert.True(t, g.IsMoveValid(m), "move %s-%s should be valid", m.From, m.To)
+		require.True(t, g.IsMoveValid(m), "move %s-%s should be valid", m.From, m.To)
 		g.Move(m)
 	}
+
+	assert.Equal(t, g.Turn(), Black)
 }
 
 func TestFoolsMate(t *testing.T) {

@@ -11,16 +11,18 @@ export const defaultGame: Game = {
   black: { name: "Black", elo: "1500" },
 }
 
-export function LiveGame() {
+export function LiveGame({ gameID }: { gameID: string }) {
   const { user } = useUser()
   const [game, setGameData] = useState(defaultGame)
   const chessGameRef = useRef<ChessGameHandle>(null)
-  const { readyState, sendJsonMessage } = useWebSocket("/ws", (event) => {
-    if (event.data) {
-      const data: Game = JSON.parse(event.data)
-      setGameData(data)
-    }
-  })
+
+  const { readyState, sendJsonMessage } = useWebSocket(
+    `/games/${gameID}`,
+    (event) => {
+      const parsed: Game = JSON.parse(event.data)
+      setGameData(parsed)
+    },
+  )
 
   return (
     <div>

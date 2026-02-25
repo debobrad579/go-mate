@@ -28,8 +28,6 @@ func main() {
 	dbQueries := database.New(db)
 	cfg := handlers.Config{DB: dbQueries, TokenSecret: os.Getenv("TOKEN_SECRET")}
 
-	go handlers.HandleBroadcasts()
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +52,8 @@ func main() {
 
 	mux.HandleFunc("/api/me", cfg.ApiMeHandler)
 
-	mux.HandleFunc("/ws", handlers.WebsocketsHandler)
+	mux.HandleFunc("/games/new", cfg.NewGameHandler)
+	mux.HandleFunc("/games/{gameID}", cfg.ConnectToGameHandler)
 
 	log.Printf("Starting server at port %s\n", port)
 	if err := http.ListenAndServe(port, mux); err != nil {

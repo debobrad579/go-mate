@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/themes/ThemeToggle"
 import { ThemeProvider } from "@/context/ThemeContext"
 import { UserProvider } from "@/context/UserContext"
 import PlayPage from "@/pages/play"
+import ConnectPage from "@/pages/connect"
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <BrowserRouter basename="/app">
         <Routes>
           <Route path="/" element={<PlayPage />} />
+          <Route path="/games/:gameID" element={<ConnectPage />} />
           <Route path="/play" element={<PlayPage />} />
           <Route path="/2" element={<ThemeToggle />} />
           <Route

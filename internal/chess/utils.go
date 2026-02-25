@@ -35,3 +35,10 @@ func NewGameState() GameState {
 		CastlingRights:  "KQkq",
 	}
 }
+
+func (g *Game) Turn() Color {
+	if len(g.Moves)%2 == 0 {
+		return White
+	}
+	return Black
+}
