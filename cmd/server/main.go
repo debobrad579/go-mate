@@ -54,6 +54,7 @@ func main() {
 
 	mux.HandleFunc("POST /games/new", cfg.NewGameHandler)
 	mux.HandleFunc("/games/{gameID}", cfg.ConnectToGameHandler)
+	mux.HandleFunc("/games", cfg.GamesListHandler)
 
 	log.Printf("Starting server at port %s\n", port)
 	if err := http.ListenAndServe(port, mux); err != nil {

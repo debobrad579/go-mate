@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 
 	"github.com/debobrad579/chessgo/internal/chess"
+	"github.com/debobrad579/chessgo/internal/database"
 	"github.com/google/uuid"
 )
 
-func New() ([]byte, error) {
+func New(user *database.User) ([]byte, error) {
 	type returnVals struct {
 		GameID uuid.UUID `json:"game_id"`
 	}
@@ -20,6 +21,7 @@ func New() ([]byte, error) {
 			Base:      3 * 60 * 1000,
 			Increment: 2 * 1000,
 		},
+		White: user,
 	}
 
 	room := gameRoom{
@@ -29,16 +31,18 @@ func New() ([]byte, error) {
 		blackTime: game.TimeControl.Base,
 	}
 
-	gameID := uuid.New()
+	roomID := uuid.New()
 
-	data, err := json.Marshal(returnVals{gameID})
+	data, err := json.Marshal(returnVals{roomID})
 	if err != nil {
 		return nil, err
 	}
 
 	registry.mu.Lock()
-	registry.rooms[gameID] = &room
+	registry.rooms[roomID] = &room
 	registry.mu.Unlock()
+
+	registry.notifySubscribers()
 
 	go room.runBroadcastLoop()
 

@@ -1,3 +1,4 @@
+import { GameList } from "@/components/chess/GameList"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router"
 
@@ -18,6 +19,7 @@ export default function HomePage() {
         >
           New Game
         </Button>
+        <GameList />
       </div>
     </div>
   )

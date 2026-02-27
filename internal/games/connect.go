@@ -80,6 +80,7 @@ func ConnectToGame(w http.ResponseWriter, r *http.Request, gameID uuid.UUID, use
 			registry.mu.Lock()
 			delete(registry.rooms, gameID)
 			registry.mu.Unlock()
+			registry.notifySubscribers()
 			return
 		}
 

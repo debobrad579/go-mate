@@ -20,7 +20,16 @@ export type Game = {
   time_control: TimeControl
 }
 
+export type GameRoom = {
+  id: string
+}
+
 export type GameReturnType = {
   game: Game
   think_time: number
+}
+
+export type GameListItem = {
+  id: string
+  game: Game
 }
