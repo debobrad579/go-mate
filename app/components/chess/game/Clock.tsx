@@ -2,7 +2,7 @@ import { formatMilliseconds } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
 import { User } from "@/types/user"
 import { getPlayerTimestamp } from "./utils"
-import { Move } from "../types"
+import { Move } from "@/types/chess"
 import { Color } from "chess.js"
 
 type ClockProps = {

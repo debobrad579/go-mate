@@ -1,15 +1,13 @@
 package games
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/debobrad579/chessgo/internal/chess"
 	"github.com/debobrad579/chessgo/internal/database"
-	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -18,121 +16,70 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func ConnectToGame(w http.ResponseWriter, r *http.Request, gameID uuid.UUID, user *database.User) error {
-	registry.mu.Lock()
-	room, ok := registry.rooms[gameID]
-	registry.mu.Unlock()
-
-	if !ok {
-		return errors.New("game not found")
-	}
-
+func (gr *GameRoom) Connect(w http.ResponseWriter, r *http.Request, user *database.User) (*websocket.Conn, chess.Color) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		return errors.New("upgrade error")
+		http.Error(w, "failed to upgrade websocket", http.StatusBadRequest)
+		return nil, chess.White
 	}
 
-	room.mu.Lock()
+	gr.mu.Lock()
 
-	if room.whiteConn != nil && room.blackConn != nil {
-		room.mu.Unlock()
-		conn.Close()
-		return errors.New("game in progress")
+	if gr.whiteConn != nil && gr.blackConn != nil {
+		gr.mu.Unlock()
+		return nil, chess.White
+		// TODO: Add spectating
 	}
 
-	isWhite := false
-	if room.game.White == nil {
-		room.game.White = user
-		room.whiteConn = conn
-		isWhite = true
-	} else if room.whiteConn == nil && room.game.White.ID == user.ID {
-		room.whiteConn = conn
-		isWhite = true
-	} else if room.game.Black == nil {
-		room.game.Black = user
-		room.blackConn = conn
-		room.turnStart = time.Now()
-	} else if room.blackConn == nil && room.game.Black.ID == user.ID {
-		room.blackConn = conn
+	playerColor := chess.White
+	if gr.Game.White == nil {
+		gr.Game.White = user
+		gr.whiteConn = conn
+	} else if gr.whiteConn == nil && gr.Game.White.ID == user.ID {
+		gr.whiteConn = conn
+	} else if gr.Game.Black == nil {
+		playerColor = chess.Black
+		gr.Game.Black = user
+		gr.blackConn = conn
+		gr.turnStart = time.Now()
+		registry.notifySubscribers()
+	} else if gr.blackConn == nil && gr.Game.Black.ID == user.ID {
+		playerColor = chess.Black
+		gr.blackConn = conn
 	}
 
-	if room.game.Black != nil && room.game.White != nil {
-		room.thinkTime = int(time.Since(room.turnStart).Milliseconds())
+	if gr.Game.Black != nil && gr.Game.White != nil {
+		gr.ThinkTime = int(time.Since(gr.turnStart).Milliseconds())
 	} else {
-		room.thinkTime = 0
+		gr.ThinkTime = 0
 	}
 
-	room.mu.Unlock()
+	gr.mu.Unlock()
 
-	defer func() {
-		conn.Close()
-		room.mu.Lock()
+	gr.broadcast <- struct{}{}
 
-		if isWhite {
-			room.whiteConn = nil
-		} else {
-			room.blackConn = nil
-		}
+	return conn, playerColor
+}
 
-		if room.whiteConn == nil && room.blackConn == nil {
-			close(room.broadcast)
-			room.mu.Unlock()
-			registry.mu.Lock()
-			delete(registry.rooms, gameID)
-			registry.mu.Unlock()
-			registry.notifySubscribers()
-			return
-		}
+func (gr *GameRoom) Disconnect(conn *websocket.Conn, playerColor chess.Color) {
+	conn.Close()
+	gr.mu.Lock()
 
-		room.mu.Unlock()
-	}()
-
-	room.broadcast <- struct{}{}
-
-	for {
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			return err
-		}
-
-		var move chess.Move
-		if err := json.Unmarshal(message, &move); err != nil {
-			continue
-		}
-
-		room.mu.Lock()
-
-		if room.game.Black == nil || room.game.White == nil {
-			room.mu.Unlock()
-			continue
-		}
-
-		if (isWhite && room.game.Turn() == chess.Black) || (!isWhite && room.game.Turn() == chess.White) {
-			room.mu.Unlock()
-			continue
-		}
-
-		if !room.game.IsMoveValid(move) {
-			room.mu.Unlock()
-			continue
-		}
-
-		if isWhite {
-			room.whiteTime -= int(time.Since(room.turnStart).Milliseconds()) - room.game.TimeControl.Increment
-			move.Timestamp = room.whiteTime
-		} else {
-			room.blackTime -= int(time.Since(room.turnStart).Milliseconds()) - room.game.TimeControl.Increment
-			move.Timestamp = room.blackTime
-		}
-
-		room.game.Move(move)
-		room.turnStart = time.Now()
-
-		room.mu.Unlock()
-
-		select {
-		case room.broadcast <- struct{}{}:
-		default:
-		}
+	if playerColor == chess.White {
+		gr.whiteConn = nil
+	} else {
+		gr.blackConn = nil
 	}
+
+	if gr.whiteConn == nil && gr.blackConn == nil {
+		close(gr.broadcast)
+		gr.mu.Unlock()
+		registry.mu.Lock()
+		delete(registry.rooms, gr.ID)
+		registry.mu.Unlock()
+		registry.notifySubscribers()
+		return
+	}
+
+	gr.mu.Unlock()
 }

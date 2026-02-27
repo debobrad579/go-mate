@@ -12,7 +12,8 @@ func (cfg *Config) AuthMiddleware(handler http.Handler) http.Handler {
 		jwtCookie, err := r.Cookie("jwt")
 		if err == nil {
 			if _, err = auth.ValidateJWT(jwtCookie.Value, cfg.TokenSecret); err == nil {
-				handler.ServeHTTP(w, r)
+				// handler.ServeHTTP(w, r)
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 		}

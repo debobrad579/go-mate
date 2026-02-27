@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useOptimistic, useRef, useState } from "react"
 import { Chess } from "chess.js"
 import { useEventListener } from "@/hooks/useEventListener"
-import { Game, Move } from "../types"
+import { Game, Move } from "@/types/chess"
 
 export function useChessGame({
   gameData,

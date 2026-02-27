@@ -1,6 +1,7 @@
 package games
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -9,8 +10,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type gameRoom struct {
-	game      *chess.Game
+type GameRoom struct {
+	ID        uuid.UUID   `json:"id"`
+	Game      *chess.Game `json:"game"`
+	ThinkTime int         `json:"think_time"`
 	whiteConn *websocket.Conn
 	blackConn *websocket.Conn
 	whiteTime int
@@ -18,17 +21,23 @@ type gameRoom struct {
 	mu        sync.Mutex
 	broadcast chan struct{}
 	turnStart time.Time
-	thinkTime int
 }
 
-type GameReturnType struct {
-	Game      *chess.Game `json:"game"`
-	ThinkTime int         `json:"think_time"`
+func GetGameRoom(gameID uuid.UUID) (*GameRoom, error) {
+	registry.mu.Lock()
+	room, ok := registry.rooms[gameID]
+	registry.mu.Unlock()
+
+	if !ok {
+		return nil, errors.New("game room not found")
+	}
+
+	return room, nil
 }
 
 type gamesRegistry struct {
 	mu          sync.Mutex
-	rooms       map[uuid.UUID]*gameRoom
+	rooms       map[uuid.UUID]*GameRoom
 	subscribers map[chan struct{}]struct{}
 }
 
@@ -58,7 +67,7 @@ func (reg *gamesRegistry) notifySubscribers() {
 }
 
 var registry = gamesRegistry{
-	rooms:       make(map[uuid.UUID]*gameRoom),
+	rooms:       make(map[uuid.UUID]*GameRoom),
 	subscribers: make(map[chan struct{}]struct{}),
 }
 

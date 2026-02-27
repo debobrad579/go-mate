@@ -2,7 +2,7 @@ import { useUser } from "@/context/UserContext"
 import { useRef, useState } from "react"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { ChessGame, type ChessGameHandle } from "./game"
-import type { Game, GameReturnType } from "./types"
+import type { Game, GameRoom } from "@/types/chess"
 
 export const defaultGame: Game = {
   moves: [],
@@ -24,7 +24,7 @@ export function LiveGame({ gameID }: { gameID: string }) {
   const { readyState, sendJsonMessage } = useWebSocket(
     `/games/${gameID}`,
     (event) => {
-      const parsed: GameReturnType = JSON.parse(event.data)
+      const parsed: GameRoom = JSON.parse(event.data)
       setGameData(parsed.game)
       setThinkTime(parsed.think_time)
     },

@@ -1,4 +1,4 @@
-import { TimeControl } from "@/components/chess/types"
+import { TimeControl } from "@/types/chess"
 
 export function formatMilliseconds(ms: number | undefined) {
   if (ms == null || ms <= 0) return "00:00:00"

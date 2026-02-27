@@ -1,7 +1,9 @@
+import { User } from "./user"
+
 export type Move = {
   from: string
   to: string
-  timestamp: int
+  timestamp: number
   promotion?: string
 }
 
@@ -22,14 +24,6 @@ export type Game = {
 
 export type GameRoom = {
   id: string
-}
-
-export type GameReturnType = {
   game: Game
   think_time: number
-}
-
-export type GameListItem = {
-  id: string
-  game: Game
 }

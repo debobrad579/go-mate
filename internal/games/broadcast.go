@@ -6,40 +6,40 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (r *gameRoom) runBroadcastLoop() {
-	for range r.broadcast {
-		r.mu.Lock()
+func (gr *GameRoom) runBroadcastLoop() {
+	for range gr.broadcast {
+		gr.mu.Lock()
 
-		data, err := json.Marshal(GameReturnType{Game: r.game, ThinkTime: r.thinkTime})
+		data, err := json.Marshal(gr)
 		if err != nil {
-			r.mu.Unlock()
+			gr.mu.Unlock()
 			continue
 		}
 
-		white := r.whiteConn
-		black := r.blackConn
+		white := gr.whiteConn
+		black := gr.blackConn
 
-		r.mu.Unlock()
+		gr.mu.Unlock()
 
 		if white != nil {
 			if err := white.WriteMessage(websocket.TextMessage, data); err != nil {
 				white.Close()
-				r.mu.Lock()
-				if r.whiteConn == white {
-					r.whiteConn = nil
+				gr.mu.Lock()
+				if gr.whiteConn == white {
+					gr.whiteConn = nil
 				}
-				r.mu.Unlock()
+				gr.mu.Unlock()
 			}
 		}
 
 		if black != nil {
 			if err := black.WriteMessage(websocket.TextMessage, data); err != nil {
 				black.Close()
-				r.mu.Lock()
-				if r.blackConn == black {
-					r.blackConn = nil
+				gr.mu.Lock()
+				if gr.blackConn == black {
+					gr.blackConn = nil
 				}
-				r.mu.Unlock()
+				gr.mu.Unlock()
 			}
 		}
 	}

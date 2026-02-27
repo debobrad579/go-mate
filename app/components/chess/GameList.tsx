@@ -1,4 +1,4 @@
-import { GameListItem } from "./types"
+import { GameRoom } from "@/types/chess"
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import { formatTimeControl } from "@/lib/formatters"
 import { useNavigate } from "react-router"
 
 export function GameList() {
-  const { data } = useEventSource<GameListItem[]>("/games")
+  const { data } = useEventSource<GameRoom[]>("/games")
   const navigate = useNavigate()
 
   return (

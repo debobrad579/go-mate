@@ -24,22 +24,21 @@ func New(user *database.User) ([]byte, error) {
 		White: user,
 	}
 
-	room := gameRoom{
-		game:      &game,
+	room := GameRoom{
+		ID:        uuid.New(),
+		Game:      &game,
 		broadcast: make(chan struct{}),
 		whiteTime: game.TimeControl.Base,
 		blackTime: game.TimeControl.Base,
 	}
 
-	roomID := uuid.New()
-
-	data, err := json.Marshal(returnVals{roomID})
+	data, err := json.Marshal(returnVals{room.ID})
 	if err != nil {
 		return nil, err
 	}
 
 	registry.mu.Lock()
-	registry.rooms[roomID] = &room
+	registry.rooms[room.ID] = &room
 	registry.mu.Unlock()
 
 	registry.notifySubscribers()

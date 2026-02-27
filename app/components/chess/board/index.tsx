@@ -5,7 +5,7 @@ import { squareToInt } from "./utils"
 import { useArrows } from "./useArrows"
 import { useBoardWidth } from "./useBoardWidth"
 import { useDrag } from "./useDrag"
-import type { Move } from "../types"
+import type { Move } from "@/types/chess"
 
 export type ChessboardProps = {
   fen: string

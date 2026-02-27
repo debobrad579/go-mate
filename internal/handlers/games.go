@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ func (cfg *Config) NewGameHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := cfg.getUser(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	data, err := games.New(user)
@@ -41,7 +43,29 @@ func (cfg *Config) ConnectToGameHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	games.ConnectToGame(w, r, gameID, user)
+	room, err := games.GetGameRoom(gameID)
+	if err != nil {
+		http.Error(w, "game room not found", http.StatusNotFound)
+		return
+	}
+
+	conn, playerColor := room.Connect(w, r, user)
+	if conn == nil {
+		return
+	}
+	defer room.Disconnect(conn, playerColor)
+
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("failed to read message: ", err)
+			return
+		}
+
+		if err = room.MakeMove(message, playerColor); err != nil {
+			return
+		}
+	}
 }
 
 func (cfg *Config) GamesListHandler(w http.ResponseWriter, r *http.Request) {

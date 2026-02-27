@@ -11,7 +11,7 @@ import { MovesTable } from "./MovesTable"
 import { MovesList } from "./MovesList"
 import { useChessGame } from "./useChessGame"
 import { forwardRef, useImperativeHandle } from "react"
-import type { Game, Move } from "../types"
+import type { Game, Move } from "@/types/chess"
 
 export type ChessGameHandle = {
   makeMove: (move: Move) => void
