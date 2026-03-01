@@ -1,4 +1,4 @@
-import { GameListItem, Player } from "@/types/chess"
+import { GameListItem } from "@/types/chess"
 import {
   Table,
   TableBody,

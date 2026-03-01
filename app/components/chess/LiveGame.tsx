@@ -2,7 +2,6 @@ import { useRef, useState } from "react"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { ChessGame, type ChessGameHandle } from "./game"
 import type { GameData } from "@/types/chess"
-import { useUser } from "@/context/UserContext"
 
 export const defaultGame: GameData = {
   moves: [],
