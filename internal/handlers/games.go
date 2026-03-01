@@ -89,11 +89,11 @@ func (cfg *Config) ConnectToGameHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	conn, playerColor := room.Connect(w, r, user)
+	conn, playerRole := room.Connect(w, r, user)
 	if conn == nil {
 		return
 	}
-	defer room.Disconnect(conn, playerColor)
+	defer room.Disconnect(user)
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -102,9 +102,7 @@ func (cfg *Config) ConnectToGameHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		if err = room.MakeMove(message, playerColor); err != nil {
-			return
-		}
+		room.MakeMove(message, playerRole)
 	}
 }
 

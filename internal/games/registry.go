@@ -11,16 +11,16 @@ import (
 )
 
 type GameRoom struct {
-	ID        uuid.UUID   `json:"id"`
-	Game      *chess.Game `json:"game"`
-	ThinkTime int         `json:"think_time"`
-	whiteConn *websocket.Conn
-	blackConn *websocket.Conn
-	whiteTime int
-	blackTime int
-	mu        sync.Mutex
-	broadcast chan struct{}
-	turnStart time.Time
+	ID             uuid.UUID   `json:"id"`
+	Game           *chess.Game `json:"game"`
+	whiteConn      *websocket.Conn
+	blackConn      *websocket.Conn
+	whiteTime      int
+	blackTime      int
+	mu             sync.Mutex
+	broadcast      chan struct{}
+	turnStart      time.Time
+	spectatorConns map[uuid.UUID]*websocket.Conn
 }
 
 func GetGameRoom(gameID uuid.UUID) (*GameRoom, error) {

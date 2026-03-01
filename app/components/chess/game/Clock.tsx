@@ -1,12 +1,11 @@
 import { formatMilliseconds } from "@/lib/formatters"
 import { cn } from "@/lib/utils"
-import { User } from "@/types/user"
 import { getPlayerTimestamp } from "./utils"
-import { Move } from "@/types/chess"
+import { Player, Move } from "@/types/chess"
 import { Color } from "chess.js"
 
 type ClockProps = {
-  player: User | null
+  player: Player
   moves: Move[]
   undoCount: number
   gameTurn: Color
@@ -36,7 +35,7 @@ export function Clock({
           : "bg-gray-800 text-white",
       )}
     >
-      <div className="font-bold">{player?.name ?? "Player"}</div>
+      <div className="font-bold">{player.name}</div>
       <div
         className={
           result === "win"

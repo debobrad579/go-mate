@@ -1,10 +1,15 @@
 package games
 
-import (
-	"maps"
-	"slices"
-)
+func GetGamesList() []GameListItem {
+	items := make([]GameListItem, 0, len(registry.rooms))
+	for id, room := range registry.rooms {
+		items = append(items, GameListItem{
+			ID:          id,
+			White:       room.safeGetWhite(),
+			Black:       room.safeGetBlack(),
+			TimeControl: room.Game.TimeControl,
+		})
+	}
 
-func GetGamesList() []*GameRoom {
-	return slices.Collect(maps.Values(registry.rooms))
+	return items
 }

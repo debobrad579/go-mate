@@ -1,8 +1,6 @@
 package games
 
 import (
-	"encoding/json"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -10,7 +8,7 @@ func (gr *GameRoom) runBroadcastLoop() {
 	for range gr.broadcast {
 		gr.mu.Lock()
 
-		data, err := json.Marshal(gr)
+		data, err := gr.getGameData()
 		if err != nil {
 			gr.mu.Unlock()
 			continue
@@ -40,6 +38,12 @@ func (gr *GameRoom) runBroadcastLoop() {
 					gr.blackConn = nil
 				}
 				gr.mu.Unlock()
+			}
+		}
+
+		for _, conn := range gr.spectatorConns {
+			if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+				conn.Close()
 			}
 		}
 	}

@@ -3,9 +3,11 @@ package games
 import (
 	"encoding/json"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+
 	"github.com/debobrad579/chessgo/internal/chess"
 	"github.com/debobrad579/chessgo/internal/database"
-	"github.com/google/uuid"
 )
 
 func New(user *database.User, color chess.Color, timeControl chess.TimeControl) ([]byte, error) {
@@ -27,11 +29,12 @@ func New(user *database.User, color chess.Color, timeControl chess.TimeControl) 
 	}
 
 	room := GameRoom{
-		ID:        uuid.New(),
-		Game:      &game,
-		broadcast: make(chan struct{}),
-		whiteTime: game.TimeControl.Base,
-		blackTime: game.TimeControl.Base,
+		ID:             uuid.New(),
+		Game:           &game,
+		broadcast:      make(chan struct{}),
+		whiteTime:      game.TimeControl.Base,
+		blackTime:      game.TimeControl.Base,
+		spectatorConns: make(map[uuid.UUID]*websocket.Conn),
 	}
 
 	data, err := json.Marshal(returnVals{room.ID})

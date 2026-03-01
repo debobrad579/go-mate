@@ -1,4 +1,4 @@
-import { GameRoom } from "@/types/chess"
+import { GameListItem, Player } from "@/types/chess"
 import {
   Table,
   TableBody,
@@ -11,9 +11,10 @@ import { useEventSource } from "@/hooks/useEventSource"
 import { formatTimeControl } from "@/lib/formatters"
 import { useNavigate } from "react-router"
 import { Timer } from "lucide-react"
+import { playerExists } from "./game/utils"
 
 export function GameList() {
-  const { data } = useEventSource<GameRoom[]>("/games")
+  const { data } = useEventSource<GameListItem[]>("/games")
   const navigate = useNavigate()
 
   return (
@@ -28,27 +29,16 @@ export function GameList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.map((room) => (
+          {data?.map((item) => (
             <TableRow
-              key={room.id}
-              onClick={() =>
-                (room.game.white == null || room.game.black == null) &&
-                navigate(`/live/${room.id}`)
-              }
-              className={
-                room.game.white != null && room.game.black != null
-                  ? "opacity-50"
-                  : "cursor-pointer"
-              }
+              key={item.id}
+              onClick={() => navigate(`/live/${item.id}`)}
+              className="cursor-pointer"
             >
               <TableCell>
-                {room.game.white != null
-                  ? room.game.white.name
-                  : room.game.black != null
-                    ? room.game.black.name
-                    : "Anonymous"}
+                {playerExists(item.white) ? item.white.name : item.black.name}
               </TableCell>
-              <TableCell>{formatTimeControl(room.game.time_control)}</TableCell>
+              <TableCell>{formatTimeControl(item.time_control)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

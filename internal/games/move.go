@@ -8,7 +8,11 @@ import (
 	"github.com/debobrad579/chessgo/internal/chess"
 )
 
-func (gr *GameRoom) MakeMove(message []byte, color chess.Color) error {
+func (gr *GameRoom) MakeMove(message []byte, playerRole PlayerRole) error {
+	if playerRole == Spectator {
+		return errors.New("cannot make move as spectator")
+	}
+
 	var move chess.Move
 	if err := json.Unmarshal(message, &move); err != nil {
 		return err
@@ -21,15 +25,15 @@ func (gr *GameRoom) MakeMove(message []byte, color chess.Color) error {
 		return errors.New("game not started")
 	}
 
-	if (color == chess.White && gr.Game.Turn() == chess.Black) || (color == chess.Black && gr.Game.Turn() == chess.White) {
-		return nil
+	if (playerRole == White) != (gr.Game.Turn() == chess.White) {
+		return errors.New("not your turn")
 	}
 
 	if !gr.Game.IsMoveValid(move) {
-		return nil
+		return errors.New("invalid move")
 	}
 
-	if color == chess.White {
+	if playerRole == White {
 		gr.whiteTime -= int(time.Since(gr.turnStart).Milliseconds()) - gr.Game.TimeControl.Increment
 		move.Timestamp = gr.whiteTime
 	} else {

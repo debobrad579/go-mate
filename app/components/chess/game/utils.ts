@@ -1,5 +1,5 @@
 import { Chess, Color } from "chess.js"
-import { Move } from "@/types/chess"
+import { Move, Player } from "@/types/chess"
 
 export function moveToSan(fen: string, move: Move): string | null {
   const chess = new Chess(fen)
@@ -57,4 +57,8 @@ export function getPlayerTimestamp({
   }
 
   return lastMove.timestamp
+}
+
+export function playerExists(player: Player) {
+  return player.id !== "00000000-0000-0000-0000-000000000000"
 }

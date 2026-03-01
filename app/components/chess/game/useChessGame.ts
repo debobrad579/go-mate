@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useOptimistic, useRef, useState } from "react"
 import { Chess } from "chess.js"
 import { useEventListener } from "@/hooks/useEventListener"
-import { Game, Move } from "@/types/chess"
+import { GameData, Move } from "@/types/chess"
+import { playerExists } from "./utils"
 
-export function useChessGame({
-  gameData,
-  thinkTime,
-}: {
-  gameData: Game
-  thinkTime: number
-}) {
+export function useChessGame({ gameData }: { gameData: GameData }) {
   const [optimisticMoves, setOptimisticMoves] = useOptimistic(gameData.moves)
-  const [optimisticThinkTime, setOptimisticThinkTime] = useState(thinkTime)
+  const [optimisticThinkTime, setOptimisticThinkTime] = useState(
+    gameData.think_time,
+  )
   const [undoCount, setUndoCount] = useState(0)
   const mouseOverBoard = useRef(false)
 
@@ -29,23 +26,23 @@ export function useChessGame({
 
   useEffect(() => {
     setUndoCount(0)
-    setOptimisticThinkTime(thinkTime)
+    setOptimisticThinkTime(gameData.think_time)
 
     if (
       gameData.result !== "*" ||
-      gameData.white == null ||
-      gameData.black == null
+      !playerExists(gameData.white) ||
+      !playerExists(gameData.black)
     )
       return
 
     const startTime = Date.now()
 
     const interval = setInterval(() => {
-      setOptimisticThinkTime(thinkTime + (Date.now() - startTime))
+      setOptimisticThinkTime(gameData.think_time + (Date.now() - startTime))
     }, 100)
 
     return () => clearInterval(interval)
-  }, [gameData, thinkTime])
+  }, [gameData])
 
   useEventListener("keydown", (e: KeyboardEvent) => {
     if (!mouseOverBoard.current) return
@@ -93,6 +90,7 @@ export function useChessGame({
         ...prev,
         { ...move, timestamp: optimisticTimestamp },
       ])
+      setOptimisticThinkTime(0)
       setUndoCount(0)
       return true
     } catch {

@@ -1,14 +1,21 @@
 import { useRef, useState } from "react"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { ChessGame, type ChessGameHandle } from "./game"
-import type { Game, GameRoom } from "@/types/chess"
+import type { GameData } from "@/types/chess"
 import { useUser } from "@/context/UserContext"
 
-export const defaultGame: Game = {
+export const defaultGame: GameData = {
   moves: [],
+  think_time: 0,
   result: "*",
-  white: null,
-  black: null,
+  white: {
+    id: "",
+    name: "White",
+  },
+  black: {
+    id: "",
+    name: "Black",
+  },
   time_control: {
     base: 600000,
     increment: 0,
@@ -16,17 +23,14 @@ export const defaultGame: Game = {
 }
 
 export function LiveGame({ gameID }: { gameID: string }) {
-  const { user } = useUser()
   const [game, setGameData] = useState(defaultGame)
-  const [thinkTime, setThinkTime] = useState(0)
   const chessGameRef = useRef<ChessGameHandle>(null)
 
   const { readyState, sendJsonMessage } = useWebSocket(
     `/games/${gameID}`,
     (event) => {
-      const parsed: GameRoom = JSON.parse(event.data)
-      setGameData(parsed.game)
-      setThinkTime(parsed.think_time)
+      const parsed: GameData = JSON.parse(event.data)
+      setGameData(parsed)
     },
   )
 
@@ -36,11 +40,10 @@ export function LiveGame({ gameID }: { gameID: string }) {
       <ChessGame
         ref={chessGameRef}
         gameData={game}
-        thinkTime={thinkTime}
-        isPlayingBlack={game.black?.id != null && game.black?.id === user?.id}
         onMove={(move) => {
-          if (!chessGameRef.current?.makeMove(move)) return
-          sendJsonMessage(move)
+          if (chessGameRef.current?.makeMove(move)) {
+            sendJsonMessage(move)
+          }
         }}
       />
     </div>

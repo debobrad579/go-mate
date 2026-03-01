@@ -1,5 +1,3 @@
-import { User } from "./user"
-
 export type Move = {
   from: string
   to: string
@@ -9,21 +7,28 @@ export type Move = {
 
 export type Result = "1-0" | "0-1" | "1/2-1/2" | "*"
 
+export type Player = {
+  id: string
+  name: string
+}
+
 export type TimeControl = {
   base: number
   increment: number
 }
 
-export type Game = {
+export type GameData = {
   moves: Move[]
-  result: Result
-  white: User | null
-  black: User | null
+  think_time: number
   time_control: TimeControl
+  result: Result
+  white: Player
+  black: Player
 }
 
-export type GameRoom = {
+export type GameListItem = {
   id: string
-  game: Game
-  think_time: number
+  white: Player
+  black: Player
+  time_control: TimeControl
 }

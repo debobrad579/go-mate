@@ -11,21 +11,20 @@ import { MovesTable } from "./MovesTable"
 import { MovesList } from "./MovesList"
 import { useChessGame } from "./useChessGame"
 import { forwardRef, useImperativeHandle } from "react"
-import type { Game, Move } from "@/types/chess"
+import type { GameData, Move } from "@/types/chess"
+import { useUser } from "@/context/UserContext"
 
 export type ChessGameHandle = {
   makeMove: (move: Move) => void
 }
 
 type ChessGameProps = {
-  gameData: Game
-  thinkTime: number
-  isPlayingBlack: boolean
+  gameData: GameData
   onMove: ChessboardProps["onMove"]
 }
 
 export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
-  function ChessGame({ gameData, thinkTime, isPlayingBlack, onMove }, ref) {
+  function ChessGame({ gameData, onMove }, ref) {
     const {
       game,
       optimisticMoves,
@@ -37,7 +36,7 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
       redoMove,
       setUndoCount,
       addMove,
-    } = useChessGame({ gameData, thinkTime })
+    } = useChessGame({ gameData })
 
     useImperativeHandle(ref, () => ({
       makeMove: (move: Move) => {
@@ -58,6 +57,8 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
         ? optimisticMoves.at(optimisticMoves.length - undoCount - 1)
         : null
 
+    const { user } = useUser()
+
     return (
       <div className="@container">
         <div
@@ -70,7 +71,7 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
               <Clock
                 moves={optimisticMoves}
                 gameTurn={game.turn()}
-                playerColor={isPlayingBlack ? "w" : "b"}
+                playerColor={user?.id === gameData.black.id ? "w" : "b"}
                 undoCount={undoCount}
                 thinkTime={optimisticThinkTime}
                 initialTime={gameData.time_control.base}
@@ -79,11 +80,15 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                     gameData.result
                   ] as "win" | "loss" | "draw" | "*"
                 }
-                player={isPlayingBlack ? gameData.white : gameData.black}
+                player={
+                  user?.id === gameData.black.id
+                    ? gameData.white
+                    : gameData.black
+                }
               />
               <Chessboard
                 fen={game.fen()}
-                flipBoard={isPlayingBlack}
+                flipBoard={user?.id === gameData.black.id}
                 previousMove={
                   previousMove
                     ? {
@@ -95,12 +100,20 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                 }
                 check={game.inCheck() ? game.turn() : undefined}
                 onMove={onMove}
-                draggablePieces={undoCount != 0 ? "n" : game.turn()}
+                draggablePieces={
+                  undoCount !== 0
+                    ? "n"
+                    : user?.id === gameData.white.id
+                      ? "w"
+                      : user?.id === gameData.black.id
+                        ? "b"
+                        : "n"
+                }
               />
               <Clock
                 moves={optimisticMoves}
                 gameTurn={game.turn()}
-                playerColor={isPlayingBlack ? "b" : "w"}
+                playerColor={user?.id === gameData.black.id ? "b" : "w"}
                 undoCount={undoCount}
                 thinkTime={optimisticThinkTime}
                 initialTime={gameData.time_control.base}
@@ -109,7 +122,11 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                     gameData.result
                   ] as "win" | "loss" | "draw" | "*"
                 }
-                player={isPlayingBlack ? gameData.black : gameData.white}
+                player={
+                  user?.id === gameData.black.id
+                    ? gameData.black
+                    : gameData.white
+                }
               />
             </div>
             <div className="flex gap-2">
