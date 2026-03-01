@@ -8,20 +8,22 @@ import (
 	"github.com/google/uuid"
 )
 
-func New(user *database.User) ([]byte, error) {
+func New(user *database.User, color chess.Color, timeControl chess.TimeControl) ([]byte, error) {
 	type returnVals struct {
 		GameID uuid.UUID `json:"game_id"`
 	}
 
 	game := chess.Game{
-		State:  chess.NewGameState(),
-		Moves:  []chess.Move{},
-		Result: "*",
-		TimeControl: chess.TimeControl{
-			Base:      3 * 60 * 1000,
-			Increment: 2 * 1000,
-		},
-		White: user,
+		State:       chess.NewGameState(),
+		Moves:       []chess.Move{},
+		Result:      "*",
+		TimeControl: timeControl,
+	}
+
+	if color == chess.White {
+		game.White = user
+	} else {
+		game.Black = user
 	}
 
 	room := GameRoom{

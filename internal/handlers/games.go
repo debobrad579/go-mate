@@ -5,11 +5,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 
+	"github.com/debobrad579/chessgo/internal/chess"
 	"github.com/debobrad579/chessgo/internal/games"
 )
+
+type newGameOptions struct {
+	Color       string `json:"color"`
+	TimeControl string `json:"time_control"`
+}
 
 func (cfg *Config) NewGameHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := cfg.getUser(r)
@@ -18,7 +26,39 @@ func (cfg *Config) NewGameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := games.New(user)
+	defer r.Body.Close()
+
+	var gameOptions newGameOptions
+
+	if err = json.NewDecoder(r.Body).Decode(&gameOptions); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	playerColor := chess.White
+	if gameOptions.Color == "black" {
+		playerColor = chess.Black
+	}
+
+	baseStr, incrementStr, found := strings.Cut(gameOptions.TimeControl, "+")
+	if !found {
+		http.Error(w, "Invalid time control format", http.StatusBadRequest)
+		return
+	}
+
+	base, err := strconv.Atoi(baseStr)
+	if err != nil {
+		http.Error(w, "Invalid time control format", http.StatusBadRequest)
+		return
+	}
+
+	increment, err := strconv.Atoi(incrementStr)
+	if err != nil {
+		http.Error(w, "Invalid time control format", http.StatusBadRequest)
+		return
+	}
+
+	data, err := games.New(user, playerColor, chess.TimeControl{Base: base * 60 * 1000, Increment: increment * 1000})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

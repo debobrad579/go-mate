@@ -12,6 +12,7 @@ export type ChessboardProps = {
   previousMove?: Move
   check?: "w" | "b"
   onMove?: (move: Move) => void
+  flipBoard?: boolean
   draggablePieces?: "w" | "b" | "n"
 }
 
@@ -20,6 +21,7 @@ export function Chessboard({
   previousMove,
   check,
   onMove,
+  flipBoard = false,
   draggablePieces = "n",
 }: ChessboardProps) {
   const { width, ref } = useBoardWidth()
@@ -35,6 +37,7 @@ export function Chessboard({
     ref,
     draggablePieces,
     onMove,
+    flipBoard,
   })
   const board = parseFEN(fen)
 
@@ -44,31 +47,38 @@ export function Chessboard({
       className="aspect-square grid grid-cols-8 grid-rows-8 relative"
       onClick={handleBoardClick}
     >
-      {board.flat().map((piece, i) => (
-        <Square
-          key={i}
-          index={i}
-          squareWidth={width / 8}
-          piece={draggedPiece?.index != i ? piece : null}
-          isHighlighted={highlightedSquares
-            .filter((highlightedSquare) => highlightedSquare.fen === fen)
-            .map((highlightedSquare) => highlightedSquare.index)
-            .includes(i)}
-          isYellow={
-            previousMove != null &&
-            [
-              squareToInt(previousMove.from),
-              squareToInt(previousMove.to),
-            ].includes(i)
-          }
-          check={
-            (check === "w" && piece === "K") || (check === "b" && piece === "k")
-          }
-          onRightClick={() => handleArrowStart(i)}
-          onRightRelease={() => handleArrowRelease(i)}
-          onDragStart={(e) => handleDragStart(i, piece ?? "", e)}
-        />
-      ))}
+      {board.flat().map((_, i) => {
+        const displayIndex = flipBoard ? 63 - i : i
+        const piece = board.flat()[displayIndex]
+
+        return (
+          <Square
+            key={i}
+            index={displayIndex}
+            flipBoard={flipBoard}
+            squareWidth={width / 8}
+            piece={draggedPiece?.index !== displayIndex ? piece : null}
+            isHighlighted={highlightedSquares
+              .filter((h) => h.fen === fen)
+              .map((h) => h.index)
+              .includes(displayIndex)}
+            isYellow={
+              previousMove != null &&
+              [
+                squareToInt(previousMove.from),
+                squareToInt(previousMove.to),
+              ].includes(displayIndex)
+            }
+            check={
+              (check === "w" && piece === "K") ||
+              (check === "b" && piece === "k")
+            }
+            onRightClick={() => handleArrowStart(displayIndex)}
+            onRightRelease={() => handleArrowRelease(displayIndex)}
+            onDragStart={(e) => handleDragStart(displayIndex, piece ?? "", e)}
+          />
+        )
+      })}
       {draggedPiece && (
         <div
           className="absolute cursor-grabbing"
@@ -89,13 +99,20 @@ export function Chessboard({
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
         {arrows
           .filter((arrow) => arrow.fen === fen)
-          .map((arrow) => (
-            <Arrow
-              key={`${arrow.startIndex}${arrow.endIndex}`}
-              squareWidth={width / 8}
-              arrow={arrow}
-            />
-          ))}
+          .map((arrow) => {
+            const startIndex = flipBoard
+              ? 63 - arrow.startIndex
+              : arrow.startIndex
+            const endIndex = flipBoard ? 63 - arrow.endIndex : arrow.endIndex
+
+            return (
+              <Arrow
+                key={`${arrow.startIndex}${arrow.endIndex}`}
+                squareWidth={width / 8}
+                arrow={{ ...arrow, startIndex, endIndex }}
+              />
+            )
+          })}
       </svg>
     </div>
   )

@@ -6,11 +6,13 @@ export function useDrag({
   width,
   ref,
   draggablePieces = "n",
+  flipBoard = false,
   onMove,
 }: {
   width: number
   ref: RefObject<HTMLDivElement | null>
   draggablePieces: ChessboardProps["draggablePieces"]
+  flipBoard: boolean
   onMove: ChessboardProps["onMove"]
 }) {
   const [dragStartSquare, setDragStartSquare] = useState<number | null>(null)
@@ -59,8 +61,12 @@ export function useDrag({
     const y = e.clientY - rect.top
     const squareWidth = width / 8
 
-    const col = Math.floor(x / squareWidth)
-    const row = Math.floor(y / squareWidth)
+    const col = flipBoard
+      ? 7 - Math.floor(x / squareWidth)
+      : Math.floor(x / squareWidth)
+    const row = flipBoard
+      ? 7 - Math.floor(y / squareWidth)
+      : Math.floor(y / squareWidth)
     const targetIndex = row * 8 + col
 
     if (

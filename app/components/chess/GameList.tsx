@@ -10,6 +10,7 @@ import {
 import { useEventSource } from "@/hooks/useEventSource"
 import { formatTimeControl } from "@/lib/formatters"
 import { useNavigate } from "react-router"
+import { Timer } from "lucide-react"
 
 export function GameList() {
   const { data } = useEventSource<GameRoom[]>("/games")
@@ -21,7 +22,9 @@ export function GameList() {
         <TableHeader>
           <TableRow>
             <TableHead>Player</TableHead>
-            <TableHead>Time</TableHead>
+            <TableHead>
+              <Timer />
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -29,14 +32,21 @@ export function GameList() {
             <TableRow
               key={room.id}
               onClick={() =>
-                room.game.black == null && navigate(`/live/${room.id}`)
+                (room.game.white == null || room.game.black == null) &&
+                navigate(`/live/${room.id}`)
               }
               className={
-                room.game.black != null ? "opacity-50" : "cursor-pointer"
+                room.game.white != null && room.game.black != null
+                  ? "opacity-50"
+                  : "cursor-pointer"
               }
             >
               <TableCell>
-                {room.game.white != null ? room.game.white.name : "Anonymous"}
+                {room.game.white != null
+                  ? room.game.white.name
+                  : room.game.black != null
+                    ? room.game.black.name
+                    : "Anonymous"}
               </TableCell>
               <TableCell>{formatTimeControl(room.game.time_control)}</TableCell>
             </TableRow>

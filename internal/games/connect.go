@@ -32,23 +32,29 @@ func (gr *GameRoom) Connect(w http.ResponseWriter, r *http.Request, user *databa
 	}
 
 	playerColor := chess.White
-	if gr.Game.White == nil {
+	if gr.Game.White != nil && gr.Game.White.ID == user.ID {
+		gr.whiteConn = conn
+	} else if gr.Game.Black != nil && gr.Game.Black.ID == user.ID {
+		gr.blackConn = conn
+		playerColor = chess.Black
+	} else if gr.whiteConn == nil {
 		gr.Game.White = user
 		gr.whiteConn = conn
-	} else if gr.whiteConn == nil && gr.Game.White.ID == user.ID {
-		gr.whiteConn = conn
-	} else if gr.Game.Black == nil {
-		playerColor = chess.Black
+		if gr.blackConn != nil {
+			gr.turnStart = time.Now()
+			registry.notifySubscribers()
+		}
+	} else if gr.blackConn == nil {
 		gr.Game.Black = user
 		gr.blackConn = conn
-		gr.turnStart = time.Now()
-		registry.notifySubscribers()
-	} else if gr.blackConn == nil && gr.Game.Black.ID == user.ID {
+		if gr.whiteConn != nil {
+			gr.turnStart = time.Now()
+			registry.notifySubscribers()
+		}
 		playerColor = chess.Black
-		gr.blackConn = conn
 	}
 
-	if gr.Game.Black != nil && gr.Game.White != nil {
+	if gr.Game.White != nil && gr.Game.Black != nil {
 		gr.ThinkTime = int(time.Since(gr.turnStart).Milliseconds())
 	} else {
 		gr.ThinkTime = 0

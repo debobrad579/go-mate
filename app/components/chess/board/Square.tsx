@@ -10,6 +10,7 @@ type SquareProps = {
   onRightClick: () => void
   onRightRelease: () => void
   onDragStart?: (e: React.MouseEvent) => void
+  flipBoard?: boolean
 }
 
 export function Square({
@@ -22,6 +23,7 @@ export function Square({
   onRightClick,
   onRightRelease,
   onDragStart,
+  flipBoard = false,
 }: SquareProps) {
   const isLight = (Math.floor(index / 8) + (index % 8)) % 2 === 0
   const rank = 8 - Math.floor(index / 8)
@@ -61,22 +63,24 @@ export function Square({
               : "bg-[#ba8765] text-[hsl(36,64%,82%)]",
       )}
     >
-      {file === "a" && (
-        <div
-          className={"absolute top-[2px] left-[2px]"}
-          style={{ fontSize: squareWidth / 5 }}
-        >
-          {rank}
-        </div>
-      )}
-      {rank === 1 && (
-        <div
-          className={"absolute bottom-[2px] right-[2px]"}
-          style={{ fontSize: squareWidth / 5 }}
-        >
-          {file}
-        </div>
-      )}
+      {(file === "a" && !flipBoard) ||
+        (file === "h" && flipBoard && (
+          <div
+            className={"absolute top-[2px] left-[2px]"}
+            style={{ fontSize: squareWidth / 5 }}
+          >
+            {rank}
+          </div>
+        ))}
+      {(rank === 1 && !flipBoard) ||
+        (rank === 8 && flipBoard && (
+          <div
+            className={"absolute bottom-[2px] right-[2px]"}
+            style={{ fontSize: squareWidth / 5 }}
+          >
+            {file}
+          </div>
+        ))}
       {piece != null && (
         <img
           src={`/static/pieces/${piece}.svg`}

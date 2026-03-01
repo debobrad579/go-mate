@@ -17,8 +17,8 @@ func (gr *GameRoom) MakeMove(message []byte, color chess.Color) error {
 	gr.mu.Lock()
 	defer gr.mu.Unlock()
 
-	if gr.Game.Black == nil || gr.Game.White == nil {
-		return errors.New("game in progress")
+	if gr.Game.White == nil || gr.Game.Black == nil {
+		return errors.New("game not started")
 	}
 
 	if (color == chess.White && gr.Game.Turn() == chess.Black) || (color == chess.Black && gr.Game.Turn() == chess.White) {

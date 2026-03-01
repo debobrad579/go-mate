@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter, Route, Routes } from "react-router"
 import { ThemeProvider } from "@/context/ThemeContext"
 import { UserProvider } from "@/context/UserContext"
+import Layout from "@/pages/layout"
 import HomePage from "@/pages"
 import LivePage from "@/pages/live"
 
@@ -11,8 +12,10 @@ function App() {
     <UserProvider>
       <BrowserRouter basename="/app">
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/live/:gameID" element={<LivePage />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/live/:gameID" element={<LivePage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </UserProvider>

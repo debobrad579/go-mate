@@ -20,11 +20,12 @@ export type ChessGameHandle = {
 type ChessGameProps = {
   gameData: Game
   thinkTime: number
+  isPlayingBlack: boolean
   onMove: ChessboardProps["onMove"]
 }
 
 export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
-  function ChessGame({ gameData, thinkTime, onMove }, ref) {
+  function ChessGame({ gameData, thinkTime, isPlayingBlack, onMove }, ref) {
     const {
       game,
       optimisticMoves,
@@ -67,10 +68,9 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
           <div className="flex-1 space-y-2">
             <div>
               <Clock
-                className="bg-gray-800 text-white"
                 moves={optimisticMoves}
                 gameTurn={game.turn()}
-                playerColor="b"
+                playerColor={isPlayingBlack ? "w" : "b"}
                 undoCount={undoCount}
                 thinkTime={optimisticThinkTime}
                 initialTime={gameData.time_control.base}
@@ -79,10 +79,11 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                     gameData.result
                   ] as "win" | "loss" | "draw" | "*"
                 }
-                player={gameData.black}
+                player={isPlayingBlack ? gameData.white : gameData.black}
               />
               <Chessboard
                 fen={game.fen()}
+                flipBoard={isPlayingBlack}
                 previousMove={
                   previousMove
                     ? {
@@ -97,10 +98,9 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                 draggablePieces={undoCount != 0 ? "n" : game.turn()}
               />
               <Clock
-                className="bg-gray-200 text-black"
                 moves={optimisticMoves}
                 gameTurn={game.turn()}
-                playerColor="w"
+                playerColor={isPlayingBlack ? "b" : "w"}
                 undoCount={undoCount}
                 thinkTime={optimisticThinkTime}
                 initialTime={gameData.time_control.base}
@@ -109,7 +109,7 @@ export const ChessGame = forwardRef<ChessGameHandle, ChessGameProps>(
                     gameData.result
                   ] as "win" | "loss" | "draw" | "*"
                 }
-                player={gameData.white}
+                player={isPlayingBlack ? gameData.black : gameData.white}
               />
             </div>
             <div className="flex gap-2">

@@ -26,13 +26,14 @@ export function Clock({
   thinkTime,
   initialTime,
   result,
-  className,
 }: ClockProps) {
   return (
     <div
       className={cn(
         "flex justify-between gap-2 w-full px-2 py-1 font-bold",
-        className,
+        playerColor === "w"
+          ? "bg-gray-200 text-black"
+          : "bg-gray-800 text-white",
       )}
     >
       <div className="font-bold">{player?.name ?? "Player"}</div>

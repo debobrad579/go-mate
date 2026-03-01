@@ -5,8 +5,8 @@ export default function LivePage() {
   const { gameID } = useParams()
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center overflow-hidden">
-      <div className="aspect-square w-[min(100vw,100vh)] p-4">
+    <div className="h-full w-full flex items-center justify-center overflow-hidden">
+      <div className="aspect-square w-[min(100vw,100vh)]">
         <LiveGame gameID={gameID!} />
       </div>
     </div>
